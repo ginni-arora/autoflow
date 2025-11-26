@@ -3,6 +3,7 @@ import { baseProcedure, createTRPCRouter, protectedProcedure } from '../init';
 import prisma from '@/lib/db';
 import { google } from '@ai-sdk/google';
 import { generateText } from 'ai';
+import { TRPCError } from '@trpc/server';
 
 
 export const appRouter = createTRPCRouter({
@@ -14,11 +15,8 @@ export const appRouter = createTRPCRouter({
   return { success: true, message: "Job queued" };
 }),
 
-
- 
-
   getWorkflows: protectedProcedure.query(({ ctx }) => {
-    return prisma.workflow.findMany();
+    return [];
   }),
 
   createWorkflow: protectedProcedure.mutation(async () => {
