@@ -8,16 +8,21 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  posts         Post[]    @relation("UserPosts")
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id             String    @id
+  name           String
+  email          String
+  emailVerified  Boolean   @default(false)
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  sessions       Session[]
+  accounts       Account[]
+
+  workflows      Workflow[]
+  posts          Post[]    @relation("UserPosts")
+
+   @@unique([email])
 
   @@map("user")
 }
@@ -79,6 +84,12 @@ model Verification {
 model Workflow {
   id   String @id @default(cuid())
   name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+  userId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
 }
 
 
