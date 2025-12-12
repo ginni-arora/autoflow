@@ -144,6 +144,7 @@ export const useExecuteWorkflow =() => {
 
     return useMutation(
         trpc.workflows.execute.mutationOptions({
+
             onSuccess:(data) => {
                 toast.success(`Workflow "${data.name}" executed;`)
 
@@ -152,6 +153,9 @@ export const useExecuteWorkflow =() => {
             },
             onError:(error) =>{
                 toast.error(`Failed to execute workflow: ${error.message}`);
+                
+                // Reset all nodes to initial status on error
+                // This would need workflow data to reset specific nodes
             },   
 
         }),

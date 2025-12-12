@@ -126,8 +126,22 @@ export const NodeStatusIndicator = ({
       if (variant === "border") {
         return (
           <>
-            <div className={cn("absolute -top-px -left-px h-[calc(100%+2px)] w-[calc(100%+2px)] border-2 border-blue-700", className)} 
-                 style={animated ? { animation: 'spin 3s linear infinite' } : {}} />
+            <style>
+              {`
+                @keyframes loading-spin {
+                  from { transform: rotate(0deg); }
+                  to { transform: rotate(360deg); }
+                }
+                .loading-border {
+                  animation: loading-spin 2s linear infinite;
+                }
+              `}
+            </style>
+            <div className={cn(
+              "absolute -top-px -left-px h-[calc(100%+2px)] w-[calc(100%+2px)] border-2 border-blue-700",
+              animated && "loading-border",
+              className
+            )} />
             {children}
           </>
         );
