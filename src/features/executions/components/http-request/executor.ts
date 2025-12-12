@@ -1,11 +1,12 @@
 import { NodeExecutor } from "@/features/executions/types";
 import { NonRetriableError } from "inngest";
 import ky, { type Options as KyOptions } from "ky";
+import Handlebars from "handlebars";
 
 type HttpRequestData = {
-  variableName?: string;
-  endpoint?: string;
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  variableName: string;
+  endpoint: string;
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: string;
 };
 
@@ -26,17 +27,36 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     throw new NonRetriableError("HTTP request node: no endpoint configured");
   }
 
+  // Check if method is configured
+  if (!data.method) {
+    throw new NonRetriableError("Method not configured");
+  }
+
   const result = await step.run("http-request", async () => {
-    const method = data.method || "GET";
-    const endpoint = data.endpoint!;
+    // Register handlebars helper for JSON stringification
+    Handlebars.registerHelper("json", (context) => {
+      const stringified = JSON.stringify(context, null, 2);
+      return new Handlebars.SafeString(stringified);
+    });
+
+    const method = data.method;
+    const endpoint = Handlebars.compile(data.endpoint)(context);
+    
+    console.log("ENDPOINT:", endpoint);
     
     const options: KyOptions = {
       method,
     };
 
     // Add body for POST, PUT, PATCH requests
-    if (["POST", "PUT", "PATCH"].includes(method) && data.body) {
-      options.body = data.body;
+    if (["POST", "PUT", "PATCH"].includes(method)) {
+      if (data.body) {
+        const resolved = Handlebars.compile(data.body)(context);
+        console.log("RESOLVED BODY:", resolved);
+        options.body = resolved;
+      } else {
+        options.body = "{}";
+      }
       options.headers = {
         "content-type": "application/json",
       };
@@ -56,19 +76,11 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
       data: responseData,
     };
 
-    if (data.variableName) {
-      return {
-        ...context,
-        [data.variableName]: {
-          httpResponse: responsePayload,
-        },
-      };
-    }
-
-    // Fallback for backwards compatibility
     return {
       ...context,
-      httpResponse: responsePayload,
+      [data.variableName]: {
+        httpResponse: responsePayload,
+      },
     };
   });
 
