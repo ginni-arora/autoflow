@@ -23,15 +23,16 @@ export const workflowsRouter = createTRPCRouter({
       },
     });
 
-    await inngest.send({
-      name: "workflows/execute.workflow",
-      data: { workflowId: input.id},
-      
-    })
+    try {
+      await inngest.send({
+        name: "workflows/execute.workflow",
+        data: { workflowId: input.id},
+      });
+    } catch (error) {
+      console.warn("Inngest not available, workflow execution skipped:", error);
+    }
+    
     return workflow;
-
-
-
   }),
 
 
@@ -147,6 +148,8 @@ await tx.workflow.update({
 });
 
 return workflow;
+}, {
+  timeout: 10000, // 10 seconds timeout
 });
     }),
 
