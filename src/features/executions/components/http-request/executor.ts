@@ -1,7 +1,7 @@
 import { NodeExecutor } from "@/features/executions/types";
 import { NonRetriableError } from "inngest";
 import ky, { type Options as KyOptions } from "ky";
-import Handlebars from "handlebars";
+import { Handlebars } from "@/lib/handlebars";
 import { httpRequestChannel } from "@/inngest/channels/http-request";
 
 type HttpRequestData = {
@@ -11,12 +11,6 @@ type HttpRequestData = {
   body?: string;
 };
 
-// Register handlebars helper for JSON stringification
-Handlebars.registerHelper("json", (context) => {
-  const stringified = JSON.stringify(context, null, 2);
-  return new Handlebars.SafeString(stringified);
-});
-
 export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   data,
   context,
@@ -24,24 +18,47 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   publish,
   nodeId,
 }) => {
+  // Helper function to set error status
+  const setErrorStatus = async (message: string) => {
+    try {
+      await fetch('http://localhost:3001/api/node-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodeId, status: 'error' })
+      });
+    } catch (statusError: unknown) {
+      console.error('Failed to update status to error:', statusError);
+    }
+    await publish({ channel: "http-request-execution", topic: "status", data: { nodeId, status: "error" } });
+    throw new NonRetriableError(message);
+  };
+
   // Check if variable name is configured
   if (!data.variableName) {
-    await publish({ channel: "http-request-execution", topic: "status", data: { nodeId, status: "error" } });
-    throw new NonRetriableError("Variable name not configured");
+    await setErrorStatus("Variable name not configured");
   }
 
   // Check if endpoint is configured
   if (!data.endpoint) {
-    await publish({ channel: "http-request-execution", topic: "status", data: { nodeId, status: "error" } });
-    throw new NonRetriableError("HTTP request node: no endpoint configured");
+    await setErrorStatus("HTTP request node: no endpoint configured");
   }
 
   // Check if method is configured
   if (!data.method) {
-    await publish({ channel: "http-request-execution", topic: "status", data: { nodeId, status: "error" } });
-    throw new NonRetriableError("Method not configured");
+    await setErrorStatus("Method not configured");
   }
 
+  // Update status to loading via API
+  try {
+    await fetch('http://localhost:3001/api/node-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nodeId, status: 'loading' })
+    });
+  } catch (statusError: unknown) {
+    console.error('Failed to update status to loading:', statusError);
+  }
+  
   // Publish loading status
   await publish({ channel: "http-request-execution", topic: "status", data: { nodeId, status: "loading" } });
 
@@ -92,10 +109,32 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
       };
     });
 
+    // Update status to success via API
+    try {
+      await fetch('http://localhost:3001/api/node-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodeId, status: 'success' })
+      });
+    } catch (statusError: unknown) {
+      console.error('Failed to update status to success:', statusError);
+    }
+    
     // Publish success status
     await publish({ channel: "http-request-execution", topic: "status", data: { nodeId, status: "success" } });
     return result;
-  } catch (error) {
+  } catch (error: unknown) {
+    // Update status to error via API
+    try {
+      await fetch('http://localhost:3001/api/node-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodeId, status: 'error' })
+      });
+    } catch (statusError: unknown) {
+      console.error('Failed to update status to error:', statusError);
+    }
+    
     await publish({ channel: "http-request-execution", topic: "status", data: { nodeId, status: "error" } });
     throw error;
   }

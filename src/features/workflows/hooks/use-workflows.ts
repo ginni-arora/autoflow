@@ -17,28 +17,22 @@ export const useSuspenseWorkflows = () => {
 /**
  * Hook to create a new workflow
  */
-export const useCreateWorkflow =() => {
-    
+export const useCreateWorkflow = () => {
     const queryClient = useQueryClient();
     const trpc = useTRPC();
 
-
     return useMutation(
         trpc.workflows.create.mutationOptions({
-            onSuccess:(data) => {
-                toast.success(`Workflow "${data.name}" created;`)
-                
+            onSuccess: (data) => {
+                toast.success(`Workflow "${data.name}" created`);
                 queryClient.invalidateQueries(
-                    trpc.workflows.getMany.queryOptions({}),
+                    trpc.workflows.getMany.queryOptions({})
                 );
             },
-            onError:(error) =>{
+            onError: (error) => {
                 toast.error(`Failed to create workflow: ${error.message}`);
-            },   
-
-        }),
-
-
+            }
+        })
     );
 }; 
 
@@ -71,96 +65,69 @@ export const useSuspenseWorkflow = (id: string) => {
 };
 
 
-export const useUpdateWorkflowName =() => {
-    
+export const useUpdateWorkflowName = () => {
     const queryClient = useQueryClient();
     const trpc = useTRPC();
 
-
     return useMutation(
         trpc.workflows.updateName.mutationOptions({
-            onSuccess:(data) => {
-                toast.success(`Workflow "${data.name}" updated;`)
-
-                
+            onSuccess: (data) => {
+                toast.success(`Workflow "${data.name}" updated`);
                 queryClient.invalidateQueries(
-                    trpc.workflows.getMany.queryOptions({}),
+                    trpc.workflows.getMany.queryOptions({})
                 );
-
                 queryClient.invalidateQueries(
-                    trpc.workflows.getOne.queryOptions({ id: data.id}),
+                    trpc.workflows.getOne.queryOptions({ id: data.id })
                 );
             },
-            onError:(error) =>{
+            onError: (error) => {
                 toast.error(`Failed to update workflow: ${error.message}`);
-            },   
-
-        }),
-
-
+            }
+        })
     );
 }; 
 //hook to update a workflow
 
 
-export const useUpdateWorkflow =() => {
-    
+export const useUpdateWorkflow = () => {
     const queryClient = useQueryClient();
     const trpc = useTRPC();
 
-
     return useMutation(
         trpc.workflows.update.mutationOptions({
-            onSuccess:(data) => {
-                toast.success(`Workflow "${data.name}" saved;`)
-
-                
+            onSuccess: (data) => {
+                toast.success(`Workflow "${data.name}" saved`);
                 queryClient.invalidateQueries(
-                    trpc.workflows.getMany.queryOptions({}),
+                    trpc.workflows.getMany.queryOptions({})
                 );
-
                 queryClient.invalidateQueries(
-                    trpc.workflows.getOne.queryOptions({ id: data.id}),
+                    trpc.workflows.getOne.queryOptions({ id: data.id })
                 );
             },
-            onError:(error) =>{
+            onError: (error) => {
                 toast.error(`Failed to save workflow: ${error.message}`);
-            },   
-
-        }),
-
-
+            }
+        })
     );
 }; 
 
 //hook to execute a workflow
 
 
-export const useExecuteWorkflow =() => {
-    
-    
+export const useExecuteWorkflow = () => {
     const trpc = useTRPC();
-
 
     return useMutation(
         trpc.workflows.execute.mutationOptions({
-
-            onSuccess:(data) => {
-                toast.success(`Workflow "${data.name}" executed;`)
-
-                
-               
+            onSuccess: (data) => {
+                toast.success(`Workflow "${data.name}" executed`);
             },
-            onError:(error) =>{
+            onError: (error) => {
                 toast.error(`Failed to execute workflow: ${error.message}`);
-                
                 // Reset all nodes to initial status on error
                 // This would need workflow data to reset specific nodes
-            },   
-
-        }),
-
-
+            }
+        })
     );
 }; 
 

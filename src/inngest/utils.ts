@@ -1,5 +1,6 @@
 import { Connection, Node } from "@prisma/client";
 import toposort from "toposort";
+import { inngest } from "./client";
 
 export const topologicalSort = ({
   nodes,
@@ -46,6 +47,28 @@ export const topologicalSort = ({
     if (error instanceof Error && error.message.includes('cyclic')) {
       throw new Error('Workflow contains a cycle');
     }
+    throw error;
+  }
+};
+
+export const sendWorkflowExecution = async (data: {
+  workflowId: string;
+  initialData?: any;
+}) => {
+  console.log("[sendWorkflowExecution] Sending event to Inngest:", {
+    name: "workflows/execute.workflow",
+    data,
+  });
+  
+  try {
+    const result = await inngest.send({
+      name: "workflows/execute.workflow",
+      data,
+    });
+    console.log("[sendWorkflowExecution] Inngest send result:", result);
+    return result;
+  } catch (error) {
+    console.error("[sendWorkflowExecution] Error sending to Inngest:", error);
     throw error;
   }
 };

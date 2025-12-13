@@ -1,5 +1,17 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { NodeStatus } from "@/components/react-flow/node-status-indicator";
+import { subscribe } from "@inngest/realtime";
+
+// Listen for global status updates
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', (event) => {
+    if (event.data?.type === 'node-status') {
+      updateNodeStatus(event.data.nodeId, event.data.status);
+    }
+  });
+}
 
 interface UseNodeStatusOptions {
   nodeId: string;
@@ -21,21 +33,6 @@ export function updateNodeStatus(nodeId: string, status: NodeStatus) {
   }
 }
 
-// Function to simulate status changes during workflow execution
-export function simulateWorkflowExecution(nodeIds: string[]) {
-  nodeIds.forEach((nodeId, index) => {
-    // Set loading status
-    setTimeout(() => {
-      updateNodeStatus(nodeId, "loading");
-    }, index * 1000);
-    
-    // Set success status after 2 seconds
-    setTimeout(() => {
-      updateNodeStatus(nodeId, "success");
-    }, (index * 1000) + 2000);
-  });
-}
-
 export function useNodeStatus({
   nodeId,
   channel,
@@ -47,6 +44,8 @@ export function useNodeStatus({
   );
 
   useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+
     // Add listener for this node
     if (!statusListeners.has(nodeId)) {
       statusListeners.set(nodeId, new Set());
@@ -54,16 +53,35 @@ export function useNodeStatus({
     const listeners = statusListeners.get(nodeId)!;
     listeners.add(setStatus);
 
-    // Try to setup realtime subscription as fallback
+    // Setup polling for status updates
     const setupRealtime = async () => {
-      try {
-        // This is a simplified approach - in production you'd want proper realtime
-        // For now, we'll rely on the global status store
-        console.log(`Setting up realtime for node ${nodeId} on channel ${channel}`);
-      } catch (error) {
-        console.error('Realtime setup failed:', error);
-      }
+      // Skip realtime and go directly to polling
+      startPolling();
     };
+    
+    // Polling fallback for status updates
+    const startPolling = () => {
+      const pollInterval = setInterval(async () => {
+        try {
+          // Check for status updates via API
+          const response = await fetch(`/api/node-status?nodeId=${nodeId}`);
+          if (response.ok) {
+            const { status: newStatus } = await response.json();
+            if (newStatus && newStatus !== status) {
+              updateNodeStatus(nodeId, newStatus);
+            }
+          }
+        } catch (error) {
+          // Ignore polling errors
+        }
+      }, 500); // Poll every 500ms for faster updates
+      
+      // Store interval for cleanup
+      unsubscribe = () => clearInterval(pollInterval);
+    };
+    
+    // Start polling immediately as fallback
+    startPolling();
 
     setupRealtime();
 
@@ -72,6 +90,11 @@ export function useNodeStatus({
       listeners.delete(setStatus);
       if (listeners.size === 0) {
         statusListeners.delete(nodeId);
+      }
+      
+      // Unsubscribe from realtime
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
   }, [nodeId, channel, topic, refreshToken]);
