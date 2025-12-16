@@ -86,3 +86,33 @@ export function BaseNodeFooter({ className, ...props }: ComponentProps<"div">) {
     />
   );
 }
+
+/**
+ * Base execution node component for workflow nodes
+ */
+export function BaseExecutionNode({
+  image,
+  name,
+  description,
+  dialogue,
+}: {
+  image: string;
+  name: string;
+  description: string;
+  dialogue: React.ReactNode;
+}) {
+  return (
+    <BaseNode className="min-w-[200px]">
+      <BaseNodeHeader>
+        <div className="flex items-center gap-2">
+          <img src={image} alt={name} className="w-5 h-5" />
+          <BaseNodeHeaderTitle>{name}</BaseNodeHeaderTitle>
+        </div>
+      </BaseNodeHeader>
+      <BaseNodeContent>
+        <p className="text-sm text-muted-foreground">{description}</p>
+        {dialogue}
+      </BaseNodeContent>
+    </BaseNode>
+  );
+}

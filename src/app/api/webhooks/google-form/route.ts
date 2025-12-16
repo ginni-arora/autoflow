@@ -3,7 +3,7 @@ import { sendWorkflowExecution } from "@/inngest/utils";
 
 // Global status broadcaster
 if (typeof global !== 'undefined') {
-  global.nodeStatusBroadcaster = global.nodeStatusBroadcaster || new Map();
+  (global as any).nodeStatusBroadcaster = (global as any).nodeStatusBroadcaster || new Map();
 }
 
 export async function POST(request: NextRequest) {

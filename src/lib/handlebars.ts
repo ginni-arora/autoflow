@@ -30,4 +30,18 @@ Handlebars.registerHelper("googleFormResponse", (responses, questionName) => {
   return responses[questionName] || "";
 });
 
+// Helper for current date/time
+Handlebars.registerHelper("now", () => {
+  return new Date().toISOString();
+});
+
+// Helper for date formatting
+Handlebars.registerHelper("date", (format) => {
+  const now = new Date();
+  if (format === "iso") {
+    return now.toISOString();
+  }
+  return now.toString();
+});
+
 export { Handlebars };

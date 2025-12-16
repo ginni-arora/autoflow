@@ -81,11 +81,9 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
     <Panel position ="top-right">
    <AddNodeButton />
     </Panel>
-    {hasManualTrigger && (
-  <Panel position="bottom-center">
-    <ExecuteWorkflowButton workflowId={workflowId} />
-  </Panel>
-)}
+    <Panel position="bottom-center">
+      <ExecuteWorkflowButton workflowId={workflowId} />
+    </Panel>
 
     
 

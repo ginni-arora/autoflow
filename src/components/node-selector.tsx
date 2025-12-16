@@ -59,6 +59,36 @@ const executionNodes: NodeTypeOption[] = [
     description: "Makes an HTTP request",
     icon: GlobeIcon,
   },
+  {
+    type: "GEMINI",
+    label: "Gemini",
+    description: "Use Google Gemini to generate text",
+    icon: "/logos/gemini.svg",
+  },
+  {
+    type: "OPENAI",
+    label: "OpenAI",
+    description: "Use OpenAI to generate text",
+    icon: "/logos/openai.svg",
+  },
+  {
+    type: "ANTHROPIC",
+    label: "Anthropic",
+    description: "Use Anthropic to generate text",
+    icon: "/logos/anthropic.svg",
+  },
+  {
+    type: "DISCORD",
+    label: "Discord",
+    description: "Send a message to Discord",
+    icon: "/logos/discord.svg",
+  },
+  {
+    type: "SLACK",
+    label: "Slack",
+    description: "Send a message to Slack",
+    icon: "/logos/slack.svg",
+  },
 ];
 interface NodeSelectorProps {
   open: boolean;

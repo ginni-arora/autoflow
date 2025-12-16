@@ -67,6 +67,38 @@ const onSubmit = async (values: LoginFormValues) => {
   );
 };
 
+const signInGitHub = async () => {
+  await authClient.signIn.social(
+    {
+      provider: "github",
+    },
+    {
+      onSuccess: () => {
+        router.push("/");
+      },
+      onError: (ctx) => {
+        toast.error(ctx.error.message || "GitHub sign-in failed");
+      },
+    }
+  );
+};
+
+const signInGoogle = async () => {
+  await authClient.signIn.social(
+    {
+      provider: "google",
+    },
+    {
+      onSuccess: () => {
+        router.push("/");
+      },
+      onError: (ctx) => {
+        toast.error(ctx.error.message || "Google sign-in failed");
+      },
+    }
+  );
+};
+
 
 const isPending = form.formState.isSubmitting;
 
@@ -91,21 +123,21 @@ return (
         className="w-full"
         type="button"
         disabled={isPending}
+        onClick={signInGitHub}
       >
         <Image src="/logos/github.svg" width={20} height={20} alt="GitHub logo" />
-
-
         Continue with GitHub
       </Button>
       <Button
-  variant="outline"
-  className="w-full"
-  type="button"
-  disabled={isPending}
->
-    <Image src="/logos/google.svg" width={20} height={20} alt="Google  logo" />
-  Continue with Google
-</Button>
+        variant="outline"
+        className="w-full"
+        type="button"
+        disabled={isPending}
+        onClick={signInGoogle}
+      >
+        <Image src="/logos/google.svg" width={20} height={20} alt="Google  logo" />
+        Continue with Google
+      </Button>
 
     </div>
     <div className="grid gap-6">
