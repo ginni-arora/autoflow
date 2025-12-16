@@ -124,8 +124,21 @@ export const useExecuteWorkflow = () => {
             },
             onError: (error) => {
                 toast.error(`Failed to execute workflow: ${error.message}`);
-                // Reset all nodes to initial status on error
-                // This would need workflow data to reset specific nodes
+                
+                // Update all visible nodes to error status
+                if (typeof window !== 'undefined') {
+                    const nodeElements = document.querySelectorAll('[data-id]');
+                    nodeElements.forEach((element) => {
+                        const nodeId = element.getAttribute('data-id');
+                        if (nodeId) {
+                            window.postMessage({
+                                type: 'node-status',
+                                nodeId,
+                                status: 'error'
+                            }, '*');
+                        }
+                    });
+                }
             }
         })
     );

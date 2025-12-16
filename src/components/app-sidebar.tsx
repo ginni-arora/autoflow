@@ -132,15 +132,15 @@ export const AppSidebar = () => {
                 <SidebarMenuButton
                     tooltip="Sign out"
                     className="gap-x-4 h-10 px-4"
-                    onClick={() =>  authClient.signOut({
-                      fetchOptions: {
-                        onSuccess: () => {
-                          router.push("/login");
+                    onClick={async () => {
+                      await authClient.signOut({
+                        fetchOptions: {
+                          onSuccess: () => {
+                            router.push("/login");
+                          },
                         },
-                      }
-                    })
-
-                    }
+                      });
+                    }}
                 >
                     <LogOutIcon className="h-4 w-4" />
                     <span>Sign out</span>

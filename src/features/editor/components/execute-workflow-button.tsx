@@ -14,21 +14,33 @@ export const ExecuteWorkflowButton = ({
 
     const handleExecute = () => {
         const nodes = getNodes();
-        const nodeIds = nodes.map(node => node.id);
         
-        // Update all nodes to loading status immediately
-        nodeIds.forEach(nodeId => {
-            updateNodeStatus(nodeId, "loading");
+        // Immediately set all nodes to loading
+        nodes.forEach(node => {
+            window.postMessage({
+                type: 'node-status',
+                nodeId: node.id,
+                status: 'loading'
+            }, '*');
         });
         
-        // Simulate execution progress
-        nodeIds.forEach((nodeId, index) => {
-            setTimeout(() => {
-                updateNodeStatus(nodeId, "success");
-            }, (index + 1) * 2000); // 2 seconds per node
-        });
+        // Set timeout to show error if execution takes too long
+        const timeoutId = setTimeout(() => {
+            nodes.forEach(node => {
+                window.postMessage({
+                    type: 'node-status',
+                    nodeId: node.id,
+                    status: 'error'
+                }, '*');
+            });
+        }, 10000); // 10 seconds timeout
         
-        executeworkflow.mutate({ id: workflowId });
+        executeworkflow.mutate({ 
+            id: workflowId,
+            onSettled: () => {
+                clearTimeout(timeoutId);
+            }
+        });
     };
   return (
     <Button size="lg" onClick={handleExecute} disabled={executeworkflow.isPending}>
